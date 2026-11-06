@@ -24,9 +24,10 @@ function renderTraining(){
  let controls='';
  if(a[0]==='q') controls=a[2].map((v,k)=>'<button class="option" onclick="gradeChoice('+ci+','+j+','+k+')">'+String.fromCharCode(65+k)+'. '+v+'</button>').join('');
  if(a[0]==='n') controls='<label>Ta réponse : <input inputmode="decimal" type="text" id="answer'+j+'" placeholder="Nombre, sans unité"></label> <button class="primary" onclick="gradeNumber('+ci+','+j+')">Vérifier</button>';
- if(a[0]==='r') controls='<textarea id="answer'+j+'" rows="4" placeholder="Rédige ta réponse avant de voir le corrigé"></textarea><button class="primary" onclick="reveal('+ci+','+j+')">Voir le corrigé modèle</button>';
+ if(a[0]==='r') controls='<textarea id="answer'+j+'" rows="4" oninput="keepDraft('+ci+','+j+')" placeholder="Rédige ta réponse avant de voir le corrigé"></textarea><button class="primary" onclick="reveal('+ci+','+j+')">Voir le corrigé modèle</button>';
  return '<div class="quizcard"><span class="tag">Exercice '+(j+1)+' · '+(a[0]==='q'?'QCM':a[0]==='n'?'Calcul':'Rédaction')+'</span><p><b>'+a[1]+'</b></p>'+controls+'<div id="result'+j+'" class="feedback" aria-live="polite">'+(status?.message||'')+'</div></div>'
  }).join('')+'<div class="recap"><b>Ton bilan</b><p id="trainScore"></p></div>';
+ document.querySelectorAll('#trainingContent textarea').forEach((el,j)=>{const card=el.closest('.quizcard');const idx=[...card.parentElement.children].indexOf(card);try{el.value=localStorage.getItem('tcva_draft_'+ci+'_'+idx)||''}catch(e){}});
  updateTrainingScore(ci);
 }
 function updateTrainingScore(ci){
@@ -34,10 +35,11 @@ function updateTrainingScore(ci){
  const good=q.filter((a,j)=>scores[ci+'-'+j]?.good).length;
  document.getElementById('trainScore').textContent=answered+' / '+q.length+' exercices consultés ou corrigés · '+good+' réponses automatiques correctes. Les rédactions sont à comparer au corrigé, sans notation automatique.';
 }
+function keepDraft(ci,j){const el=document.getElementById('answer'+j);if(!el)return;try{localStorage.setItem('tcva_draft_'+ci+'_'+j,el.value)}catch(e){document.getElementById('result'+j).textContent='Attention : brouillon non sauvegardé sur cet appareil.'}}
 function showResult(ci,j,good,message){
  scores[ci+'-'+j]={done:true,good:!!good,message};
  document.getElementById('result'+j).textContent=message;
- try{localStorage.setItem('tcva_training_scores_v6',JSON.stringify(scores))}catch(e){}
+ try{localStorage.setItem('tcva_training_scores_v6',JSON.stringify(scores))}catch(e){alert('Attention : ton navigateur refuse la sauvegarde. N’efface pas les données du site et préviens ton professeur.')}
  updateTrainingScore(ci);
 }
 function gradeChoice(ci,j,k){
@@ -52,7 +54,7 @@ function gradeNumber(ci,j){
  showResult(ci,j,good,(good?'✅ Calcul correct. ':'❌ Calcul à revoir. ')+a[3]);
 }
 function reveal(ci,j){const a=TRAINING[ci][1][j];showResult(ci,j,false,'📖 Corrigé modèle : '+a[2])}
-function resetTraining(){const ci=Number(document.getElementById('trainChapter').value||0);Object.keys(scores).filter(k=>k.startsWith(ci+'-')).forEach(k=>delete scores[k]);try{localStorage.setItem('tcva_training_scores_v6',JSON.stringify(scores))}catch(e){}renderTraining()}
+function resetTraining(){const ci=Number(document.getElementById('trainChapter').value||0);Object.keys(scores).filter(k=>k.startsWith(ci+'-')).forEach(k=>delete scores[k]);try{localStorage.setItem('tcva_training_scores_v6',JSON.stringify(scores))}catch(e){alert('Attention : ton navigateur refuse la sauvegarde. N’efface pas les données du site et préviens ton professeur.')}renderTraining()}
 </script><script>
 (function(){const CK='tcva_courses_studied_v10';function get(k){try{return JSON.parse(localStorage.getItem(k)||'{}')||{}}catch(e){return {}}}function draw(){let courses=get(CK),ex=get('tcva_training_scores_v6'),e5=get('tcva_e5_v9_answers');let nc=Object.values(courses).filter(Boolean).length,ne=Object.keys(ex).filter(k=>/^\d+-\d+$/.test(k)&&ex[k]!==null).length,n5=Object.values(e5).filter(v=>typeof v==='string'?v.trim().length>0:v!==null&&v!==undefined&&String(v).trim()!=='').length;nc=Math.min(20,nc);ne=Math.min(800,ne);n5=Math.min(20,n5);let pct=Math.round(100*(nc+ne+n5)/840);document.getElementById('progressPercent').textContent=pct+' %';document.getElementById('progressFill').style.width=pct+'%';document.getElementById('progressTrack').setAttribute('aria-valuenow',pct);document.getElementById('progCourses').textContent=nc+'/20';document.getElementById('progExercises').textContent=ne+'/800';document.getElementById('progE5').textContent=n5+'/20';document.querySelectorAll('[data-course-progress]').forEach(el=>el.checked=!!courses[el.dataset.courseProgress]);}let checks=document.getElementById('courseChecks');for(let i=0;i<20;i++){let label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.dataset.courseProgress=i;input.addEventListener('change',()=>{let v=get(CK);v[i]=input.checked;try{localStorage.setItem(CK,JSON.stringify(v))}catch(e){}draw()});label.append(input,document.createTextNode(' Cours '+(i+1)));checks.append(label)}window.addEventListener('pageshow',draw);document.addEventListener('click',()=>setTimeout(draw,80));draw();})();
 </script><script src="suivi-config.js"></script><script src="suivi-eleve.js"></script></body></html>
