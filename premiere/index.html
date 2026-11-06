@@ -63,5 +63,17 @@ const REVISIONS=[{"mp": "MP1", "name": "Étude opérationnelle du point de vente
 const REVISION_PLUS={};
 function showRevisions(mp){current=-1;drawMenu();const tabs=REVISIONS.map(r=>`<button class="btn ${r.mp===mp?'':'secondary'}" onclick="showRevisions('${r.mp}')">${esc(r.mp==='Calculs'?'🧮 Calculs':r.mp)}</button>`).join('');const chosen=REVISIONS.filter(r=>!mp||r.mp===mp);document.getElementById('view').innerHTML=`<span class="tag">Manuel indépendant des séances</span><h2>📚 Réviser mes MP</h2><p class="sub">Notions, méthodes, exemples corrigés et activités de révision regroupés ici. Pas besoin d'ouvrir les 55 cours. Les intitulés et regroupements sont pédagogiques : vérifier les libellés officiels du référentiel avec l'enseignant.</p><div class="topnav"><button class="btn ${!mp?'':'secondary'}" onclick="showRevisions()">Tout voir</button>${tabs}</div>${chosen.map(r=>`<section class="card"><h2>${esc(r.mp)} · ${esc(r.name)}</h2><p>${esc(r.intro)}</p><div class="rev-grid">${r.sections.map((v,i)=>`<div class="rev-card"><span class="tag gray">Fiche ${i+1}</span><h3>${esc(v[0])}</h3><p>${esc(v[1])}</p><p><strong>Exemple :</strong> ${esc(v[2])}</p><p class="note"><strong>⚠ À éviter :</strong> ${esc(v[3])}</p></div>`).join('')}</div><h3>📘 Approfondir et s’entraîner</h3><div class="rev-grid">${(REVISION_PLUS[r.mp]||[]).map((v,i)=>`<div class="rev-card"><span class="tag gray">Mémo ${i+1}</span><h3>${esc(v[0])}</h3><p>${esc(v[1])}</p><p><strong>Exemple corrigé :</strong> ${esc(v[2])}</p><p class="note"><strong>À pratiquer / point de vigilance :</strong> ${esc(v[3])}</p></div>`).join('')}</div></section>`).join('')}<div class="actions rev-print"><button class="btn secondary" onclick="window.print()">🖨 Imprimer les fiches</button><button class="btn light" onclick="showHome()">Retour à l'accueil</button></div>`}
 
+// Test technique isolé : aucune identité ni réponse réelle d'élève n'est envoyée.
+function testerConnexionSuivi(){
+ const data={identifiant:'ELEVE TEST GITHUB',seance:'1',exercice:'TEST CONNEXION',question:'Test technique depuis GitHub',reponse:'OK',attendue:'OK',correct:true,tentative:1};
+ fetch('https://script.google.com/macros/s/AKfycbzX1jbUV2nFy7weEzYi1IH26iYUZCjrSjW0JoLNpozEnFdGsXckS-6BGbSs_g9prut0/exec',{
+ method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)
+ }).then(()=>alert('Test envoyé. Vérifiez la ligne ELEVE TEST GITHUB dans le tableau Réponses.')).catch(()=>alert('Envoi impossible : vérifiez la connexion.'));
+}
+const testButton=document.createElement('button');
+testButton.type='button';testButton.textContent='Tester la liaison Google Sheets (données fictives)';
+testButton.className='btn light';testButton.style.cssText='margin:12px;white-space:normal;font-size:12px';
+testButton.onclick=testerConnexionSuivi;
+document.querySelector('aside.side')?.appendChild(testButton);
 document.getElementById('student').value=sid;showHome();
 </script></body></html>
